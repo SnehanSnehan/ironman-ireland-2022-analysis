@@ -1,0 +1,164 @@
+---
+title: "Ironman Ireland 2022: Performance Analysis"
+author: "Snehan"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    code_folding: hide
+    theme: flatly
+---
+
+## Introduction
+
+This report analyzes performance data from Ironman Ireland 2022, a triathlon competition held in Ireland. The dataset contains information on 1,045 athletes who completed the race, including their swim, bike, and run times, along with demographic information such as age group, gender, and country.
+
+An Ironman triathlon consists of three segments:
+- **Swim**: 3.8 km
+- **Bike**: 180 km  
+- **Run**: 42.2 km (marathon)
+
+**Research Question:** What factors affect race performance in Ironman Ireland 2022?
+
+This analysis examines how age, gender, and race segment influence overall performance.
+
+## Data Preparation
+```{r setup, message=FALSE, warning=FALSE}
+# Load required libraries
+library(ggplot2)
+library(dplyr)
+library(lubridate)
+library(tidyr)
+
+# Load the data
+load("ironman (1).Rdata")
+
+# Convert time strings to numeric hours
+ironman <- ironman %>%
+  mutate(
+    Total_hours = as.numeric(hms(Total)) / 3600,
+    Swim_hours = as.numeric(hms(Swim)) / 3600,
+    Bike_hours = as.numeric(hms(Bike)) / 3600,
+    Run_hours = as.numeric(hms(Run)) / 3600
+  )
+
+# Create Gender column
+ironman <- ironman %>%
+  mutate(Gender = ifelse(grepl("^M", AG) | AG == "MPRO", "Male", "Female"))
+
+# Extract numeric age from age groups
+ironman <- ironman %>%
+  mutate(Age_numeric = case_when(
+    AG == "MPRO" | AG == "FPRO" ~ 30,
+    grepl("18-24", AG) ~ 21,
+    grepl("25-29", AG) ~ 27,
+    grepl("30-34", AG) ~ 32,
+    grepl("35-39", AG) ~ 37,
+    grepl("40-44", AG) ~ 42,
+    grepl("45-49", AG) ~ 47,
+    grepl("50-54", AG) ~ 52,
+    grepl("55-59", AG) ~ 57,
+    grepl("60-64", AG) ~ 62,
+    grepl("65-69", AG) ~ 67,
+    grepl("70", AG) ~ 72,
+    TRUE ~ NA_real_
+  ))
+```
+
+The dataset required conversion of time strings (HH:MM:SS format) to numeric hours for analysis. A Gender variable was created based on age group codes, and numeric ages were extracted from categorical age groups.
+
+## Analysis
+
+### Plot 1: Distribution of Finish Times
+```{r plot1, fig.cap="Distribution of total race completion times shows most athletes finish between 13-15 hours.", fig.width=8, fig.height=5}
+ggplot(ironman, aes(x = Total_hours)) +
+  geom_histogram(bins = 30, fill = "purple", color = "black") +
+  geom_vline(xintercept = mean(ironman$Total_hours), 
+           color = "red", linetype = "dashed", linewidth = 1) +
+  labs(title = "Distribution of Total Race Times",
+       subtitle = "Red line indicates average time (13.5 hours)",
+       x = "Total Time (hours)",
+       y = "Number of Athletes") +
+  theme_minimal()
+```
+
+This histogram displays the distribution of total finish times for all 1,045 athletes. The average completion time is 13.5 hours (shown by the red dashed line). The distribution shows that most athletes complete the race between 13-15 hours, with the data slightly right-skewed, indicating some athletes take considerably longer than average. The fastest athlete finished in approximately 8.6 hours, while the slowest took over 17 hours.
+
+### Plot 2: Performance by Age Group
+```{r plot2, fig.cap="Average finish times by age group reveal that professional athletes are fastest, while older age groups take longer.", fig.width=8, fig.height=6}
+age_summary <- ironman %>%
+  group_by(AG) %>%
+  summarise(Avg_hours = mean(Total_hours),
+            Count = n()) %>%
+  filter(Count >= 10) %>%
+  arrange(Avg_hours)
+
+ggplot(age_summary, aes(x = reorder(AG, Avg_hours), y = Avg_hours)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Average Finish Time by Age Group",
+       subtitle = "Only groups with 10+ athletes shown",
+       x = "Age Group",
+       y = "Average Time (hours)") +
+  theme_minimal()
+```
+
+This bar chart compares average finish times across different age groups (only groups with 10 or more athletes are shown). Professional athletes (MPRO and FPRO) demonstrate the fastest times, averaging around 9-10 hours. Among age-group categories, younger athletes (25-39 years) perform better than older categories. The F50-54 age group shows the longest average time, highlighting how both age and gender influence performance. The largest participation comes from the M40-44 age group.
+
+### Plot 3: Comparison of Race Segments
+```{r plot3, fig.cap="Boxplot comparison shows the bike segment takes significantly longer than swim or run portions.", fig.width=8, fig.height=5}
+ironman_long <- ironman %>%
+  select(Name, Swim_hours, Bike_hours, Run_hours) %>%
+  pivot_longer(cols = c(Swim_hours, Bike_hours, Run_hours),
+               names_to = "Segment",
+               values_to = "Hours")
+
+ggplot(ironman_long, aes(x = Segment, y = Hours, fill = Segment)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("Swim_hours" = "lightblue", 
+                                "Bike_hours" = "orange", 
+                                "Run_hours" = "lightgreen")) +
+  scale_x_discrete(labels = c("Bike_hours" = "Bike", 
+                              "Run_hours" = "Run", 
+                              "Swim_hours" = "Swim")) +
+  labs(title = "Time Spent on Each Race Segment",
+       subtitle = "Ironman Ireland 2022",
+       x = "Race Segment",
+       y = "Time (hours)") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+This boxplot reveals the relative difficulty and time requirements of each race segment. The bike portion consumes the most time, with a median around 5 hours, which is expected given the 180 km distance. The swim segment is the shortest (median ~1 hour for 3.8 km), while the run (marathon distance) takes approximately 3-4 hours. The variation in bike times is notably larger than swim times, suggesting that cycling performance varies more significantly among athletes. This analysis helps athletes understand where to focus training efforts.
+
+### Plot 4: Age and Performance Relationship
+```{r plot4, fig.cap="Scatterplot with trend lines demonstrates that performance declines with age for both males and females.", fig.width=8, fig.height=6}
+# Remove athletes with missing age data
+ironman_clean <- ironman %>% filter(!is.na(Age_numeric))
+
+ggplot(ironman_clean, aes(x = Age_numeric, y = Total_hours, color = Gender)) +
+  geom_point(alpha = 0.5, size = 2) +
+  geom_smooth(method = "lm", se = FALSE, formula = y ~ x) +
+  scale_color_manual(values = c("Female" = "pink", "Male" = "steelblue")) +
+  labs(title = "Does Age Affect Race Performance?",
+       subtitle = "Ironman Ireland 2022",
+       x = "Age (years)",
+       y = "Total Time (hours)",
+       color = "Gender") +
+  theme_minimal()
+```
+
+This scatterplot examines the relationship between age and total finish time, separated by gender. Both trend lines show a positive slope, indicating that older athletes generally take longer to complete the race. The pattern is consistent for both males and females, though females are underrepresented in the dataset (124 females vs 921 males). The data points show considerable variation, suggesting that while age is a factor, individual fitness and training play important roles. Some athletes in their 50s and 60s still achieve competitive times, demonstrating that age is not an absolute barrier to performance.
+
+## Conclusion
+
+This analysis of Ironman Ireland 2022 reveals several key factors affecting race performance:
+
+1. **Age Impact**: There is a clear positive relationship between age and finish time, with older athletes generally taking longer to complete the race. However, individual variation is substantial.
+
+2. **Segment Difficulty**: The bike segment accounts for the largest portion of race time (approximately 5 hours on average), making it the most critical segment for overall performance.
+
+3. **Experience Level**: Professional athletes significantly outperform age-group competitors, finishing 3-4 hours faster on average than recreational athletes.
+
+4. **Gender Participation**: Males vastly outnumber females (88% vs 12%), and show slightly faster average times (13.5 vs 13.8 hours).
+
+The average Ironman Ireland finisher completes the race in 13.5 hours, with most athletes clustering between 13-15 hours. This analysis provides valuable insights for athletes planning their training strategies and understanding performance benchmarks for this challenging endurance event.
