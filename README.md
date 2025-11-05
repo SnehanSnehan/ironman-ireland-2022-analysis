@@ -1,119 +1,115 @@
-🏊🚴🏃 Ironman Ireland 2022 – Performance Analysis
+🏊🚴🏃 Ironman Ireland 2022 — Performance Analysis (R)
 
-This project analyzes athlete performance data from the Ironman Ireland 2022 triathlon event. A total of 1,045 athletes who completed the race are included. The goal of this analysis is to understand how factors such as age, gender, and individual race segments (swim, bike, run) influence overall finishing time.
+This project analyzes Ironman Ireland 2022 race data to understand how
+age, gender, and race segments (swim, bike, run) influence overall finishing times.
+The analysis was carried out in R using tidyverse packages and visualized through multiple plots.
 
-📌 Research Question
+✅ Research Question
 
-What factors affect race performance in Ironman Ireland 2022?
+Which factors influence overall race performance in Ironman Ireland 2022?
 
-The analysis examines:
+✅ Dataset Overview
 
-Influence of age
+The dataset includes performance details for 1,045 athletes.
 
-Differences across gender
+Each record contains:
 
-Contribution of race segments to total finish time
+Swim time (3.8 km)
 
-📊 Dataset Description
+Bike time (180 km)
 
-The dataset contains information such as:
+Run time (42.2 km)
 
-Athlete demographics → Age group, gender, country
+Overall completion time
 
-Times for each event → Swim, bike, run
+Age group (AG)
 
-Overall completion time (HH:MM:SS)
+Gender
 
-Pre-processing steps included:
+Country
 
-Converting time strings to numeric (hours)
+Times originally in HH:MM:SS were converted into numeric hours.
 
-Extracting numeric age values
+Data source: ironman (1).Rdata included in this repository
 
-Creating gender variable from age group codes
+✅ Project Structure
+/
+├── README.md
+├── ironman (1).Rdata
+├── ironman_project.Rmd
+├── ironman_report.html
+└── plots/
+      ├── age_group_performance.png
+      ├── age_group_plot.png
+      ├── age_vs_performance.png
+      └── race_segments_comparison.png
 
-🔎 Analysis Summary
-✅ 1. Distribution of Finish Times
+✅ Tools & Packages Used
+Category	Tools
+Language	R
+Libraries	dplyr, ggplot2, tidyr, lubridate
+Output	HTML report, Plots
+✅ Data Preparation
 
-Most athletes finish between 13–15 hours, with an average time of 13.5 hours.
-The distribution is slightly right-skewed due to slower finishers (>17 hours).
+✔ Converted race times → numeric hours
+✔ Extracted numerical ages from age groups
+✔ Derived gender from age group codes
+✔ Organized data for segment-wise analysis
 
-✅ 2. Performance by Age Group
+✅ Key Plots & Insights
+1️⃣ Distribution of Overall Finish Times
 
-Professional athletes (MPRO, FPRO) are the fastest (≈ 9–10 hours).
+Most athletes finish between 13–15 hours, averaging ~13.5 hours.
 
-Younger age groups (25–39) perform better than older categories.
+📁 plots/age_group_plot.png
 
-F50–54 finishes slowest on average.
+2️⃣ Average Finish Time by Age Group
 
-Largest participation: M40–44
+Professional groups (MPRO, FPRO) are fastest (~9–10 hrs)
 
-✅ 3. Comparison of Race Segments
+Age-group athletes slow progressively with age
 
-Bike takes the longest (median ≈ 5 hours)
+📁 plots/age_group_performance.png
 
-Swim is shortest (≈ 1 hour)
+3️⃣ Race Segment Comparison
 
-Run takes 3–4 hours
-Bike time shows the biggest performance variation among athletes.
+Bike is longest (~5 hours)
 
-✅ 4. Age & Performance Relationship
+Run: ~3–4 hours
 
-Positive relationship → older athletes finish slower
+Swim: ~1 hour
 
-Trend holds for both genders
+📁 plots/race_segments_comparison.png
 
-High variation → strong individual fitness differences
+4️⃣ Age vs. Performance
 
-Males dominate participation (≈ 88%)
+Older athletes tend to finish slower.
+Trend consistent in men and women.
 
-🏁 Key Findings
+📁 plots/age_vs_performance.png
+
+✅ Key Findings
 Factor	Observation
-Age	Older athletes = longer finish times
-Gender	Males slightly faster; participation heavily male
-Segment difficulty	Bike is most time-consuming; largest performance spread
-Experience	Professionals finish 3–4 hours faster
-Average finisher	~13.5 hours; most finish 13–15 hours
+Age	Performance declines with age
+Segment	Bike consumes the most time with highest variance
+Experience	PRO athletes finish 3–4 hours faster
+Gender	88% male participants; slightly faster
 
-Conclusion:
-Age, experience level, and particularly bike performance are key drivers of overall Ironman results. Although age trends are clear, standout performances occur at all ages—showing that dedication and training strongly influence outcomes.
+✅ Average finishing time ≈ 13.5 hours
+✅ Most athletes finish within 13–15 hours
 
-📁 Image Files
+✅ How to Run
 
-Plots are located under /images/:
+1️⃣ Clone this repo:
 
-plot1_finish_time_distribution.png
+git clone https://github.com/SnehanSnehan/ironman-ireland-2022-analysis.git
 
-plot2_age_group_performance.png
 
-plot3_segment_comparison.png
+2️⃣ Open ironman_project.Rmd in RStudio
+3️⃣ Install required libraries
+4️⃣ Knit to HTML
 
-plot4_age_vs_performance.png
-
-These visuals support the interpretation of finish distributions, age effect, segment contributions, and gender–age interactions.
-
-🛠️ Technology Used
-
-R
-
-Tidyverse
-
-ggplot2
-
-dplyr
-
-lubridate
-
-🚀 How to Run
-
-Clone repository
-
-Install required R packages
-
-Run the .Rmd / .R script
-
-View generated plots in images/
-
-📌 Author
+✅ Author
 
 Snehan
+2025-11-05
